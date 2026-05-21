@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTDeliver Public API Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #337ab7;
+    --primary-dark: #2e6da4;
+    --navy: #1A3550;
+    --info: #31708F;
+    --success: #3C763D;
+    --success-bg: #DFF0D8;
+    --danger: #A94442;
+    --warning: #8a6d3b;
+    --muted: #777777;
+    --bg: #F9F9F9;
+    --border: #DDDDDD;
+    --border-strong: #C8C8C8;
+    --surface: #FFFFFF;
+    --text: #1A3550;
+    --text-soft: #4a5b6d;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HEADER */
+  .top {
+    background: var(--navy);
+    color: #fff;
+    padding: 18px 28px;
+    border-bottom: 3px solid var(--primary);
+  }
+  .top h1 {
+    margin: 0;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: -0.01em;
+  }
+  .top .sub {
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  /* STATUS STRIP */
+  .status-strip {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+  }
+  .status-dot.ok { background: var(--success); }
+  .status-dot.err { background: var(--danger); }
+  .status-dot.loading {
+    background: var(--warning);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .status-label { color: var(--muted); }
+  .status-value { color: var(--text); font-weight: 500; }
+  .status-strip input[type="text"] {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 5px 9px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    width: 380px;
+    color: var(--text);
+    background: var(--bg);
+  }
+  .status-strip button {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    padding: 5px 12px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: #fff;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .status-strip button:hover { background: var(--primary-dark); }
+  .status-strip button.secondary {
+    background: transparent;
+    color: var(--primary);
+  }
+  .status-strip button.secondary:hover { background: rgba(51,122,183,0.08); }
+
+  /* MAIN CONTAINER */
+  .container { padding: 24px 28px 60px; max-width: 1600px; margin: 0 auto; }
+
+  /* FILTERS */
+  .filters {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .filters-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--navy);
+    margin: 0;
+  }
+  .filters-summary {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .filters-summary .hl { color: var(--primary); font-weight: 600; }
+  .filter-group { margin-bottom: 14px; }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .filter-label .count {
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--primary);
+    font-weight: 500;
+  }
+  .filter-label .clear {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0;
+  }
+  .filter-label .clear:hover { text-decoration: underline; }
+  .pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    padding: 5px 11px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-soft);
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .pill:hover { border-color: var(--primary); color: var(--primary); }
+  .pill.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .pill .ct {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    opacity: 0.75;
+    margin-left: 5px;
+  }
+
+  .country-search {
+    width: 100%;
+    max-width: 320px;
+    padding: 6px 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--primary);
+  }
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+    color: var(--navy);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .kpi-value .unit {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 4px;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* CARDS GENERAL */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--navy);
+    margin: 0 0 4px;
+  }
+  .card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 18px;
+  }
+
+  /* MILESTONE FUNNEL */
+  .funnel-row {
+    display: grid;
+    grid-template-columns: 200px 60px 1fr 70px;
+    align-items: center;
+    gap: 14px;
+    padding: 6px 0;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .funnel-row:last-child { border-bottom: none; }
+  .funnel-label {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .funnel-label .ord {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+    margin-right: 6px;
+  }
+  .funnel-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .funnel-bar-track {
+    background: #F0F4F8;
+    height: 18px;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .funnel-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.4s ease;
+  }
+  .funnel-bar-fill.high { background: var(--success); }
+  .funnel-bar-fill.low { background: #c98c2f; }
+  .funnel-bar-fill.critical { background: var(--danger); }
+  .funnel-pct {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .funnel-pct.faded { color: var(--muted); font-weight: 400; }
+
+  /* CHART GRID */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  /* BAR CHARTS */
+  .bar-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 60px;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0;
+  }
+  .bar-label {
+    font-size: 12px;
+    color: var(--text);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .bar-track { background: #F0F4F8; height: 16px; border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+  .bar-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-soft);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* DATA TABLE */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  table th, table td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px solid #F0F0F0;
+    white-space: nowrap;
+  }
+  table th {
+    background: #FAFBFC;
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    position: sticky;
+    top: 0;
+  }
+  table td {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-soft);
+  }
+  table td.po { color: var(--primary); font-weight: 500; }
+  table td.null { color: #c8c8c8; }
+  table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-wrap-inner { max-height: 480px; overflow-y: auto; border: 1px solid var(--border); border-radius: 3px; }
+
+  /* ERROR / EMPTY STATES */
+  .error-box {
+    background: #FBEAEA;
+    border: 1px solid #E8C5C5;
+    border-left: 3px solid var(--danger);
+    border-radius: 3px;
+    padding: 14px 18px;
+    color: var(--danger);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .error-box strong { color: var(--danger); }
+  .error-box code {
+    background: rgba(169,68,66,0.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .error-box ul { margin: 8px 0 0; padding-left: 22px; }
+  .error-box li { margin-bottom: 4px; }
+
+  .info-box {
+    background: #EBF3F8;
+    border: 1px solid #C8DDED;
+    border-left: 3px solid var(--info);
+    border-radius: 3px;
+    padding: 12px 16px;
+    color: var(--info);
+    font-size: 12px;
+    margin-bottom: 18px;
+  }
+
+  /* PROXY NOTE (persistent documentation banner) */
+  .proxy-note {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--info);
+    border-radius: 4px;
+    padding: 14px 18px 16px;
+    margin-bottom: 24px;
+  }
+  .proxy-note-title {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .proxy-note-title code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: rgba(49,112,143,0.08);
+    color: var(--info);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+  .proxy-note-body {
+    font-size: 12.5px;
+    color: var(--text-soft);
+    line-height: 1.55;
+  }
+  .proxy-note-body code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    background: var(--bg);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 20px;
+    font-style: italic;
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.7;
+  }
+  .footer .h {
+    color: var(--text-soft);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .chart-grid { grid-template-columns: 1fr; }
+    .funnel-row { grid-template-columns: 150px 50px 1fr 60px; }
+  }
+  @media (max-width: 700px) {
+    .container { padding: 16px; }
+    .kpi-row { grid-template-columns: 1fr; }
+    .funnel-row { grid-template-columns: 120px 1fr 50px; gap: 8px; }
+    .funnel-count { display: none; }
+    .bar-row { grid-template-columns: 100px 1fr 50px; }
+    .status-strip input[type="text"] { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>NTDeliver Public API Dashboard</h1>
+  <div class="sub">Public Metabase endpoint via CORS proxy. No authentication.</div>
+</div>
+
+<div class="status-strip">
+  <span class="status-dot loading" id="dot"></span>
+  <span class="status-label">Status</span>
+  <span class="status-value" id="status-text">Initializing</span>
+
+  <span style="color: var(--border-strong);">|</span>
+  <span class="status-label">Rows</span>
+  <span class="status-value" id="row-count">—</span>
+
+  <span style="color: var(--border-strong);">|</span>
+  <span class="status-label">Last fetch</span>
+  <span class="status-value" id="last-fetch">—</span>
+
+  <span style="flex: 1;"></span>
+
+  <span class="status-label">Source</span>
+  <input type="text" id="endpoint-url" value="https://api.allorigins.win/raw?url=https%3A%2F%2Fdashboards.securedatakit.com%2Fapi%2Fpublic%2Fdashboard%2Fa7c9a281-51bf-42f7-a869-f43cfae8cdc1%2Fdashcard%2F59479%2Fcard%2F20548">
+  <button id="reload-btn">Reload</button>
+</div>
+
+<div class="container">
+
+  <div id="error-container"></div>
+
+  <!-- PROXY EXPLANATION -->
+  <div class="proxy-note">
+    <div class="proxy-note-title">Why the URL above routes through <code>allorigins.win</code></div>
+    <div class="proxy-note-body">
+      The Metabase public endpoint does not send an <code>Access-Control-Allow-Origin</code> header on its responses, so browsers block direct JavaScript fetches even though the data is technically public. The Source field above wraps the real endpoint in <code>allorigins.win</code>, a free public CORS proxy that adds the missing header. The dashboard works as a result, but every request now passes through a third party. For ongoing or production use, replace this with a self-hosted proxy or have CORS configured correctly on the Metabase side.
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <div class="filters-header">
+      <h2 class="filters-title">Filters</h2>
+      <div class="filters-summary">
+        Showing <span class="hl" id="filtered-count">—</span> of <span id="total-count">—</span> POs
+        <span id="active-filter-count" style="margin-left: 12px;"></span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">
+        MDA Year
+        <button class="clear" data-clear="year">clear</button>
+      </div>
+      <div class="pill-group" id="filter-year"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">
+        Donor
+        <button class="clear" data-clear="donor">clear</button>
+      </div>
+      <div class="pill-group" id="filter-donor"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">
+        Drug
+        <button class="clear" data-clear="Drug">clear</button>
+      </div>
+      <div class="pill-group" id="filter-drug"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">
+        Country
+        <span class="count" id="country-summary"></span>
+        <button class="clear" data-clear="Country">clear</button>
+      </div>
+      <input type="text" class="country-search" id="country-search" placeholder="Search countries...">
+      <div class="pill-group" id="filter-country"></div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Filtered POs</div>
+      <div class="kpi-value" id="kpi-pos">—</div>
+      <div class="kpi-sub" id="kpi-pos-sub">&nbsp;</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Tablets in Scope</div>
+      <div class="kpi-value" id="kpi-tabs">—</div>
+      <div class="kpi-sub" id="kpi-tabs-sub">&nbsp;</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">% Reached Delivery</div>
+      <div class="kpi-value" id="kpi-delivered">—</div>
+      <div class="kpi-sub" id="kpi-delivered-sub">&nbsp;</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Median PO Raised to Delivery</div>
+      <div class="kpi-value" id="kpi-leadtime">—</div>
+      <div class="kpi-sub" id="kpi-leadtime-sub">&nbsp;</div>
+    </div>
+  </div>
+
+  <!-- MILESTONE FUNNEL -->
+  <div class="card">
+    <h2 class="card-title">Milestone Completion Funnel</h2>
+    <div class="card-sub">Percentage of filtered POs with a recorded date at each milestone. Records milestone capture quality, not physical progression.</div>
+    <div id="funnel"></div>
+  </div>
+
+  <!-- CHART GRID -->
+  <div class="chart-grid">
+    <div class="card">
+      <h2 class="card-title">POs by MDA Year</h2>
+      <div class="card-sub">Distribution across planned MDA years</div>
+      <div id="chart-year"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">POs by Donor</h2>
+      <div class="card-sub">Volume per pharmaceutical donor</div>
+      <div id="chart-donor"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">POs by Drug</h2>
+      <div class="card-sub">Volume per donated medicine code</div>
+      <div id="chart-drug"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Top 10 Countries</h2>
+      <div class="card-sub">Recipient countries by PO count</div>
+      <div id="chart-country"></div>
+    </div>
+  </div>
+
+  <!-- DATA PREVIEW -->
+  <div class="card">
+    <h2 class="card-title">Data Preview</h2>
+    <div class="card-sub">First 200 filtered rows, sorted by App Submitted Date (newest first)</div>
+    <div class="table-wrap-inner">
+      <div class="table-wrap">
+        <table id="data-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="h">About this dashboard</div>
+    Originally built to test browser-direct access to the NTDeliver public Metabase endpoint. That test failed because the Metabase server does not return an <code>Access-Control-Allow-Origin</code> header on its GET responses, so the dashboard now routes through allorigins.win as a workaround. All filtering is performed client-side because the public API does not respect filter parameters server-side. Region is not available as a filter because the row data does not include a region column; only country is exposed.
+    <div class="h">Known limitations</div>
+    Delivery Date conflates Milestone 11 (Delivery to Warehouse) and Milestone 12 (POD Received). Milestone 8 (Pre Alert / Final Docs) is not surfaced by the endpoint. Greenlight milestones have known high null rates (54-61%). Records with MDA year 2014-2018 are pre-migration and less complete.
+    <div class="h">Endpoint</div>
+    <span id="endpoint-display"></span>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+// =============================================================================
+// STATE
+// =============================================================================
+let allRows = [];
+let cols = [];
+const filters = {
+  year: new Set(),
+  donor: new Set(),
+  Drug: new Set(),
+  Country: new Set()
+};
+let countrySearch = '';
+
+// Milestone definitions in pipeline order with their column names
+const MILESTONES = [
+  { ord: 'pre', label: 'Application Submitted', col: 'App Submitted Date' },
+  { ord: 'pre', label: 'Application Approved', col: 'App Approved Date' },
+  { ord: '1',   label: 'PO Raised',             col: 'PO Raised Date' },
+  { ord: '1b',  label: 'PO Issued (sub-step)',  col: 'PO Issued Date' },
+  { ord: '2',   label: 'PO Acknowledgment',     col: 'PO Acknowledgment Date' },
+  { ord: '3',   label: 'Packing Completed',     col: 'PO Packing Date' },
+  { ord: '4',   label: 'Greenlight Requested',  col: 'GL requested' },
+  { ord: '5',   label: 'Greenlight Approved',   col: 'GL approved' },
+  { ord: '6',   label: 'Booking Request',       col: 'Booking Date' },
+  { ord: '7',   label: 'Dispatch Shipment',     col: 'Departure Date' },
+  { ord: '9',   label: 'Actual Arrival',        col: 'Actual Shipment Arrival' },
+  { ord: '10',  label: 'Customs Clearance',     col: 'Customs Clearance' },
+  { ord: '11/12', label: 'Delivery (PoD)',      col: 'Delivery Date' }
+];
+
+// =============================================================================
+// DATA LOAD
+// =============================================================================
+async function loadData() {
+  const url = document.getElementById('endpoint-url').value.trim();
+  document.getElementById('endpoint-display').textContent = url;
+  setStatus('loading', 'Fetching');
+  clearError();
+
+  const t0 = performance.now();
+  try {
+    const res = await fetch(url, { method: 'GET' });
+    if (!res.ok) {
+      throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+    }
+    const payload = await res.json();
+    if (payload.status && payload.status !== 'completed') {
+      throw new Error('Endpoint returned status: ' + payload.status);
+    }
+    if (!payload.data || !payload.data.cols || !payload.data.rows) {
+      throw new Error('Unexpected response shape: missing data.cols or data.rows');
+    }
+    if (payload.data.rows_truncated) {
+      showWarning('Metabase reported the response was truncated. Row count may be incomplete.');
+    }
+
+    cols = payload.data.cols.map(c => c.name);
+    allRows = payload.data.rows.map(row => {
+      const obj = {};
+      for (let i = 0; i < cols.length; i++) obj[cols[i]] = row[i];
+      return obj;
+    });
+
+    const elapsed = Math.round(performance.now() - t0);
+    setStatus('ok', 'Live data');
+    document.getElementById('row-count').textContent = allRows.length.toLocaleString();
+    document.getElementById('last-fetch').textContent =
+      new Date().toLocaleTimeString([], { hour12: false }) + ' (' + elapsed + ' ms)';
+    document.getElementById('total-count').textContent = allRows.length.toLocaleString();
+
+    buildFilters();
+    render();
+  } catch (err) {
+    setStatus('err', 'Failed');
+    document.getElementById('row-count').textContent = '—';
+    document.getElementById('last-fetch').textContent = '—';
+    showFetchError(err);
+  }
+}
+
+function setStatus(state, text) {
+  const dot = document.getElementById('dot');
+  dot.classList.remove('ok', 'err', 'loading');
+  dot.classList.add(state);
+  document.getElementById('status-text').textContent = text;
+}
+
+function clearError() {
+  document.getElementById('error-container').innerHTML = '';
+}
+
+function showFetchError(err) {
+  const msg = err && err.message ? err.message : String(err);
+  const isCors = /failed to fetch|networkerror|cors|access-control/i.test(msg);
+  const html = `
+    <div class="error-box">
+      <strong>Data fetch failed:</strong> <code>${escapeHtml(msg)}</code>
+      ${isCors || msg === 'Failed to fetch' ? `
+        <div style="margin-top: 10px;">This is almost certainly a CORS issue. The Metabase endpoint does not return an <code>Access-Control-Allow-Origin</code> header on its GET response, so the browser blocks the read. Options to work around:</div>
+        <ul>
+          <li>Run a local proxy (Python: <code>python3 -m http.server</code> alone will not help; you need a proxy that adds CORS headers). Point this dashboard's Source field at <code>http://localhost:PORT/...</code>.</li>
+          <li>Use a CORS proxy service for testing only, for example: <code>https://corsproxy.io/?url=ENCODED_URL</code></li>
+          <li>Use the NTDeliver MCP server you already have running locally for read access.</li>
+        </ul>
+      ` : ''}
+    </div>`;
+  document.getElementById('error-container').innerHTML = html;
+}
+
+function showWarning(text) {
+  const div = document.createElement('div');
+  div.className = 'info-box';
+  div.textContent = text;
+  document.getElementById('error-container').appendChild(div);
+}
+
+// =============================================================================
+// FILTER UI
+// =============================================================================
+function buildFilters() {
+  buildPillFilter('filter-year', 'year', uniqueSorted(allRows, 'year'));
+  buildPillFilter('filter-donor', 'donor', uniqueSorted(allRows, 'donor'));
+  buildPillFilter('filter-drug', 'Drug', uniqueSorted(allRows, 'Drug'));
+  buildPillFilter('filter-country', 'Country', uniqueSorted(allRows, 'Country'));
+}
+
+function buildPillFilter(containerId, field, values) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  for (const v of values) {
+    const count = allRows.filter(r => r[field] === v).length;
+    const pill = document.createElement('button');
+    pill.className = 'pill';
+    pill.dataset.field = field;
+    pill.dataset.value = v;
+    pill.innerHTML = `${escapeHtml(v)} <span class="ct">${count}</span>`;
+    pill.addEventListener('click', () => {
+      if (filters[field].has(v)) filters[field].delete(v);
+      else filters[field].add(v);
+      pill.classList.toggle('active');
+      render();
+    });
+    container.appendChild(pill);
+  }
+}
+
+function uniqueSorted(rows, field) {
+  const set = new Set();
+  for (const r of rows) if (r[field] != null) set.add(r[field]);
+  const arr = [...set];
+  // Years should be sorted numerically descending, others alphabetically
+  if (field === 'year') {
+    arr.sort((a, b) => Number(b) - Number(a));
+  } else {
+    arr.sort();
+  }
+  return arr;
+}
+
+// Country search
+document.getElementById('country-search').addEventListener('input', (e) => {
+  countrySearch = e.target.value.toLowerCase().trim();
+  const container = document.getElementById('filter-country');
+  for (const pill of container.children) {
+    const v = pill.dataset.value.toLowerCase();
+    pill.style.display = (!countrySearch || v.includes(countrySearch)) ? '' : 'none';
+  }
+});
+
+// Clear-all buttons
+document.querySelectorAll('[data-clear]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const field = btn.dataset.clear;
+    filters[field].clear();
+    const containerId = 'filter-' + (field === 'Drug' ? 'drug' : field === 'Country' ? 'country' : field);
+    document.querySelectorAll('#' + containerId + ' .pill').forEach(p => p.classList.remove('active'));
+    render();
+  });
+});
+
+// =============================================================================
+// FILTERING + RENDERING
+// =============================================================================
+function applyFilters() {
+  return allRows.filter(r => {
+    for (const f of ['year', 'donor', 'Drug', 'Country']) {
+      if (filters[f].size && !filters[f].has(r[f])) return false;
+    }
+    return true;
+  });
+}
+
+function render() {
+  const rows = applyFilters();
+  document.getElementById('filtered-count').textContent = rows.length.toLocaleString();
+  document.getElementById('country-summary').textContent = filters.Country.size
+    ? filters.Country.size + ' selected' : '';
+
+  // Active filter count badge
+  const activeCount = filters.year.size + filters.donor.size + filters.Drug.size + filters.Country.size;
+  document.getElementById('active-filter-count').textContent =
+    activeCount ? `(${activeCount} filter${activeCount === 1 ? '' : 's'} active)` : '';
+
+  renderKpis(rows);
+  renderFunnel(rows);
+  renderBarChart('chart-year', rows, 'year', { sortFn: (a, b) => Number(b.key) - Number(a.key) });
+  renderBarChart('chart-donor', rows, 'donor');
+  renderBarChart('chart-drug', rows, 'Drug');
+  renderBarChart('chart-country', rows, 'Country', { limit: 10 });
+  renderTable(rows);
+}
+
+function renderKpis(rows) {
+  const totalPos = rows.length;
+  const totalTabs = rows.reduce((s, r) => s + (Number(r['Quantity (in tabs)']) || 0), 0);
+  const delivered = rows.filter(r => r['Delivery Date']).length;
+  const deliveredPct = totalPos ? (delivered / totalPos) * 100 : 0;
+
+  // Lead time: PO Raised -> Delivery Date for rows with both
+  const leadTimes = [];
+  for (const r of rows) {
+    const a = r['PO Raised Date'], b = r['Delivery Date'];
+    if (a && b) {
+      const days = (new Date(b) - new Date(a)) / 86400000;
+      if (days >= 0 && days < 5000) leadTimes.push(days);
+    }
+  }
+  const medianLead = median(leadTimes);
+
+  document.getElementById('kpi-pos').textContent = totalPos.toLocaleString();
+  document.getElementById('kpi-pos-sub').textContent =
+    allRows.length ? `${((totalPos / allRows.length) * 100).toFixed(1)}% of total dataset` : '';
+
+  document.getElementById('kpi-tabs').innerHTML = formatBigNumber(totalTabs);
+  document.getElementById('kpi-tabs-sub').textContent =
+    totalPos ? `Avg ${Math.round(totalTabs / totalPos).toLocaleString()} tabs / PO` : '';
+
+  document.getElementById('kpi-delivered').innerHTML =
+    deliveredPct.toFixed(1) + '<span class="unit">%</span>';
+  document.getElementById('kpi-delivered-sub').textContent =
+    `${delivered.toLocaleString()} of ${totalPos.toLocaleString()} POs`;
+
+  document.getElementById('kpi-leadtime').innerHTML = leadTimes.length
+    ? Math.round(medianLead) + '<span class="unit">days</span>'
+    : '—';
+  document.getElementById('kpi-leadtime-sub').textContent = leadTimes.length
+    ? `Based on ${leadTimes.length.toLocaleString()} POs with both dates`
+    : 'No qualifying POs in selection';
+}
+
+function renderFunnel(rows) {
+  const container = document.getElementById('funnel');
+  container.innerHTML = '';
+  const total = rows.length;
+
+  if (!total) {
+    container.innerHTML = '<div class="empty">No POs match the current filters.</div>';
+    return;
+  }
+
+  for (const m of MILESTONES) {
+    const present = rows.filter(r => r[m.col]).length;
+    const pct = (present / total) * 100;
+    let cls = '';
+    if (pct >= 90) cls = 'high';
+    else if (pct >= 60) cls = '';
+    else if (pct >= 30) cls = 'low';
+    else cls = 'critical';
+
+    const row = document.createElement('div');
+    row.className = 'funnel-row';
+    row.innerHTML = `
+      <div class="funnel-label"><span class="ord">${m.ord}</span>${escapeHtml(m.label)}</div>
+      <div class="funnel-count">${present.toLocaleString()}</div>
+      <div class="funnel-bar-track"><div class="funnel-bar-fill ${cls}" style="width: ${pct.toFixed(1)}%"></div></div>
+      <div class="funnel-pct">${pct.toFixed(1)}%</div>
+    `;
+    container.appendChild(row);
+  }
+}
+
+function renderBarChart(containerId, rows, field, opts = {}) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if (!rows.length) {
+    container.innerHTML = '<div class="empty">No data in selection.</div>';
+    return;
+  }
+
+  const counts = {};
+  for (const r of rows) {
+    const v = r[field];
+    if (v == null) continue;
+    counts[v] = (counts[v] || 0) + 1;
+  }
+  let entries = Object.entries(counts).map(([key, value]) => ({ key, value }));
+
+  if (opts.sortFn) entries.sort(opts.sortFn);
+  else entries.sort((a, b) => b.value - a.value);
+
+  if (opts.limit) entries = entries.slice(0, opts.limit);
+
+  const maxVal = Math.max(...entries.map(e => e.value));
+
+  for (const e of entries) {
+    const pct = (e.value / maxVal) * 100;
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <div class="bar-label" title="${escapeHtml(e.key)}">${escapeHtml(e.key)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width: ${pct}%"></div></div>
+      <div class="bar-value">${e.value.toLocaleString()}</div>
+    `;
+    container.appendChild(row);
+  }
+}
+
+function renderTable(rows) {
+  const thead = document.querySelector('#data-table thead');
+  const tbody = document.querySelector('#data-table tbody');
+
+  // Use a curated column subset for readability
+  const displayCols = [
+    'po_number', 'Drug', 'Country', 'year', 'donor', 'Quantity (in tabs)',
+    'App Submitted Date', 'PO Raised Date', 'PO Acknowledgment Date',
+    'GL approved', 'Departure Date', 'Delivery Date'
+  ];
+
+  thead.innerHTML = '<tr>' + displayCols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr>';
+
+  const sorted = [...rows].sort((a, b) => {
+    const da = a['App Submitted Date'] || '';
+    const db = b['App Submitted Date'] || '';
+    return db.localeCompare(da);
+  }).slice(0, 200);
+
+  tbody.innerHTML = '';
+  for (const r of sorted) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = displayCols.map(c => {
+      const v = r[c];
+      if (v == null) return '<td class="null">—</td>';
+      if (c === 'po_number') return `<td class="po">${escapeHtml(v)}</td>`;
+      if (c === 'Quantity (in tabs)') return `<td class="num">${Number(v).toLocaleString()}</td>`;
+      if (typeof v === 'string' && v.endsWith('T00:00:00Z')) {
+        return `<td>${v.substring(0, 10)}</td>`;
+      }
+      return `<td>${escapeHtml(v)}</td>`;
+    }).join('');
+    tbody.appendChild(tr);
+  }
+}
+
+// =============================================================================
+// UTILITIES
+// =============================================================================
+function median(arr) {
+  if (!arr.length) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function formatBigNumber(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + '<span class="unit">B</span>';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + '<span class="unit">M</span>';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + '<span class="unit">K</span>';
+  return n.toLocaleString();
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// =============================================================================
+// BOOT
+// =============================================================================
+document.getElementById('reload-btn').addEventListener('click', loadData);
+document.getElementById('endpoint-url').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') loadData();
+});
+
+loadData();
+</script>
+</body>
+</html>
